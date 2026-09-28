@@ -1,0 +1,32 @@
+{
+  "name": "subtitle-rag-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --watch src --ext js --exec \"node src/index.js\"",
+    "start": "node src/index.js",
+    "lint": "eslint .",
+    "ingest": "node scripts/ingest.js",
+    "chunk": "node scripts/chunk.js ../../data/parsed/*.json",
+    "embed": "node scripts/embed_upsert.js",
+    "search": "node scripts/search.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.1.0",
+    "@google/generative-ai": "^0.24.1",
+    "@qdrant/js-client-rest": "^1.15.1",
+    "dotenv": "^16.4.5",
+    "fast-glob": "^3.3.3",
+    "fastify": "^5.5.0",
+    "node-webvtt": "^1.9.4",
+    "pino": "^9.4.0",
+    "pino-pretty": "^13.1.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.3"
+  }
+}

@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333" # REST api for talking to vec db(qdrant) by the user`
+      - "6334:6334" # gRPC(google remote procedure call)
+    volumes:
+      - qdrant_data:/qdrant/storage
+volumes:
+  qdrant_data:

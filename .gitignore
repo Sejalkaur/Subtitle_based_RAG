@@ -1,0 +1,30 @@
+# Data folder
+data/
+
+# Environment files & secrets
+.env
+.env.*
+*.env
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+build/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
