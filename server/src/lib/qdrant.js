@@ -7,11 +7,15 @@ const QDRANT_API_KEY = process.env.QDRANT_API_KEY || '';
 const COLLECTION = process.env.QDRANT_COLLECTION || 'subs_chunks';
 
 export function getQdrant() {
+  const isCloud = QDRANT_URL.includes('cloud.qdrant.io') || (QDRANT_URL.startsWith('https://') && !QDRANT_URL.includes(':6333'));
   return new QdrantClient({
     url: QDRANT_URL,
     apiKey: QDRANT_API_KEY || undefined,
+    port: isCloud ? 443 : undefined,
+    checkCompatibility: false,
   });
 }
+
 
 /**
  * Ensure a collection exists with the right vector size and cosine metric.

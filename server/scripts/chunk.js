@@ -11,12 +11,15 @@ async function main() {
   const argv = process.argv.slice(2);
   const patterns = argv.length > 0 ? argv : ['../../data/parsed/*.json'];
 
-  // expand globs into files
-  const files = await fg(patterns, { cwd: __dirname, absolute: true });
+  // expand globs into files (ignore already-generated chunks_*.json)
+  const allFiles = await fg(patterns, { cwd: __dirname, absolute: true });
+  const files = allFiles.filter((f) => !path.basename(f).startsWith('chunks_'));
+
   if (files.length === 0) {
     console.error('No parsed JSON found. Run ingest first.');
     process.exit(1);
   }
+
 
   for (const absPath of files) {
     try {

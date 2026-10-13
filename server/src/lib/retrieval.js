@@ -1,7 +1,8 @@
-// server/src/lib/retrieval.js
 import { getEmbedder } from './embeddings.js';
 import { getQdrant, collectionName } from './qdrant.js';
 import { msToTimestamp } from './time.js';
+import { logger } from './logger.js';
+
 
 function buildFilter({ courseId, fileId } = {}) {
   const must = [];
@@ -105,17 +106,27 @@ export async function searchChunks({
   const embedder = getEmbedder();
   const client = getQdrant();
 
+  logger.info({ query, courseId, topK, mmrK }, '[Retrieval] Starting chunk search...');
   const qVec = await embedder.embedQuery(query);
 
-  const res = await client.search(collectionName, {
-    vector: qVec,
-    limit: topK,
-    with_payload: true,
-    with_vector: useMMR, // only fetch vectors when we plan MMR
-    filter: buildFilter({ courseId, fileId }),
-  });
+  let res;
+  try {
+    res = await client.search(collectionName, {
+      vector: qVec,
+      limit: topK,
+      with_payload: true,
+      with_vector: useMMR, // only fetch vectors when we plan MMR
+      filter: buildFilter({ courseId, fileId }),
+    });
+  } catch (err) {
+    logger.error({ error: err.message, collection: collectionName }, '[Retrieval] Qdrant search failed');
+    throw err;
+  }
+
+  logger.info({ candidatesFound: res.length, topCandidateScore: res[0]?.score }, '[Retrieval] Qdrant candidates returned');
 
   if (!res.length) {
+    logger.info('[Retrieval] No candidates matched query/filter');
     return {
       query,
       results: [],
@@ -127,6 +138,7 @@ export async function searchChunks({
       },
     };
   }
+
 
   // Confidence gate on the best raw result
   const bestScore = res[0]?.score ?? 0;
@@ -157,8 +169,10 @@ export async function searchChunks({
       .filter(Boolean);
 
     const picked = mmr(withVecs, qVec, Math.min(mmrK, withVecs.length), 0.6);
+    logger.info({ pickedCount: picked.length, requestedMMRK: mmrK }, '[Retrieval] MMR diversification complete');
 
     if (picked.length === 0 && strictMMR) {
+      logger.warn('[Retrieval] MMR returned 0 results with strictMMR=true');
       return {
         query,
         results: [],
@@ -174,6 +188,7 @@ export async function searchChunks({
     }
     finalHits = picked.length ? picked : res; // only falls back when strictMMR=false
   }
+
 
   const results = finalHits.map(toPretty);
   return {
